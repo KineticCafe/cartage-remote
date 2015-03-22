@@ -1,0 +1,45 @@
+= cartage-remote by Kinetic Cafe
+
+code :: https://github.com/KineticCafe/cartage-remote/
+issues :: https://github.com/KineticCafe/cartage-remote/issues
+continuous integration :: {<img src="https://travis-ci.org/KineticCafe/cartage-remote.png" />}[https://travis-ci.org/KineticCafe/cartage-remote]
+
+== Description
+
+cartage-remote is a plug-in for {cartage}[https://github.com/KineticCafe/cartage]
+to build a package on a remote machine with cartage.
+
+Cartage provides a repeatable means to create a package for a Rails application
+that can be used in deployment with a configuration tool like Ansible, Chef,
+Puppet, or Salt. The package is created with its dependencies bundled in
+`vendor/bundle`, so it can be deployed in environments with strict access
+control rules and without requiring development tool access.
+
+== Synopsis
+
+    # Build a package on a remote machine via SSH.
+    cartage remote
+
+== Install
+
+Add cartage-remote to your Gemfile:
+
+    gem 'cartage-remote', '~> 1.0'
+
+Or manually install:
+
+  % gem install cartage-remote
+
+== cartage-remote Semantic Versioning
+
+cartage-remote uses a {Semantic Versioning}[http://semver.org/] scheme with one
+change:
+
+* When PATCH is zero (+0+), it will be omitted from version references.
+
+cartage-remote will generally track cartage for major versions to ensure plugin API
+compatibility.
+
+:include: Contributing.rdoc
+
+:include: Licence.rdoc

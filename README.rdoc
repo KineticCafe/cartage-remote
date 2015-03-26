@@ -24,7 +24,7 @@ control rules and without requiring development tool access.
 
 Add cartage-remote to your Gemfile:
 
-    gem 'cartage-remote', '~> 1.0'
+    gem 'cartage-remote', '~> 1.1'
 
 Or manually install:
 

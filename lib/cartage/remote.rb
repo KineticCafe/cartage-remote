@@ -5,6 +5,7 @@ end
 require 'tempfile'
 require 'yaml'
 require 'erb'
+require 'micromachine'
 require 'cartage/plugin'
 
 class Cartage
@@ -102,8 +103,11 @@ class Cartage
   #                #!/bin/bash
   #                ssh-keyscan -H %<remote_host>s >> ~/.ssh/known_hosts
   # +postbuild+:: A multiline YAML string that is run as a script on the local
-  #               machine to finish the build process locally. If not provided,
-  #               nothing will run.
+  #               machine to finish the build process locally. If not
+  #               provided, nothing will run. The script will be passed the
+  #               stage (+config+, +ssh_config+, +prebuild+, +remote_clone+,
+  #               +remote_build+, +cleanup+, or +finished+) and, if the stage
+  #               is not +finished+, the error message.
   #
   # == Script Substitution
   #
@@ -153,75 +157,43 @@ class Cartage
   #         bundle exec cartage s3 --config-file %<config_file>s
   #
   class Remote < Cartage::Plugin
-    VERSION = '1.0' #:nodoc:
+    VERSION = '1.1' #:nodoc:
 
     def initialize(*) #:nodoc:
       super
       @tmpfiles = []
+      @fsm = MicroMachine.new(:new).tap do |fsm|
+        fsm.when(:local_setup, new: :config)
+        fsm.when(:ssh_setup, config: :ssh_config)
+        fsm.when(:run_prebuild, ssh_config: :prebuild)
+        fsm.when(:clone_remote, prebuild: :remote_clone)
+        fsm.when(:build_remote, remote_clone: :remote_build)
+        fsm.when(:clean_remote, remote_build: :cleanup)
+        fsm.when(:complete, cleanup: :finished)
+        fsm.on(:any) { |event| dispatch(event, @fsm.state) }
+      end
     end
 
     # Build on the remote server.
     def build
-      @cartage.display 'Pre-build configuration...'
-      stage = :config
-
-      paths = OpenStruct.new(build_root: @build_root)
-      paths.cartage_path = paths.build_root.join('cartage')
-      paths.project_path = paths.cartage_path.join(@cartage.name)
-      paths.isolation_path = paths.project_path.join(@cartage.timestamp)
-      paths.build_path = paths.isolation_path.join(@cartage.name)
-      paths.remote_bundle = paths.isolation_path.join('deps')
-      paths.bundle_cache = paths.project_path
-      paths.config_file = paths.isolation_path.join('cartage.yml')
-      paths.build_script = paths.isolation_path.join('cartage-build-remote')
-
-      config_file = make_config(paths).path
-
-      subs = OpenStruct.new(
-        paths.to_h.merge(repo_url:        @cartage.repo_url,
-                         name:            @cartage.name,
-                         release_hashref: @cartage.release_hashref,
-                         timestamp:       @cartage.timestamp,
-                         remote_host:     @remote_host,
-                         remote_port:     @remote_port,
-                         remote_user:     @remote_user)
-      )
-
-      stage = :ssh_config
-      configure_ssh
-
-      @cartage.display 'Running prebuild script...'
-      stage = :prebuild
-      system(make_tmpscript('prebuild', @prebuild, subs).path)
-
-      stage = :remote_clone
-      @cartage.display <<-message
-Checking out #{@cartage.repo_url} at #{@cartage.release_hashref} remotely...
-      message
-
-      ssh %Q(mkdir -p #{paths.isolation_path})
-      @scp.upload(config_file, user_path(paths.config_file))
-      ssh %Q(git clone #{@cartage.repo_url} #{paths.build_path})
-      ssh <<-command
-cd #{paths.build_path} && git checkout #{@cartage.release_hashref}
-      command
-
-      @cartage.display 'Running build script...'
-      stage = :remote_build
-      script = make_tmpscript('build', @build, subs).path
-      @scp.upload(script, user_path(paths.build_script))
-      ssh %Q(cd #{paths.build_path} && #{paths.build_script})
-
-      stage = :cleanup
-      @cartage.display 'Cleaning up after the build...'
-      ssh %Q(rm -rf #{paths.isolation_path})
-    rescue StandardError => e
-      $stderr.puts "Remote error in stage #{stage}: #{e.message}"
-      $stderr.puts e.backtrace.join("\n") if @cartage.verbose
+      @fsm.trigger!(:local_setup)
+      @fsm.trigger!(:ssh_setup)
+      @fsm.trigger!(:run_prebuild)
+      @fsm.trigger!(:clone_remote)
+      @fsm.trigger!(:build_remote)
+      @fsm.trigger!(:clean_remote)
+      @fsm.trigger!(:complete)
+    rescue Cartage::StatusError
+      raise
+    rescue Exception => e
+      error = e.exception("Remote error in stage #{@fsm.state}: #{e.message}")
+      error.set_backtrace(e.backtrace)
+      raise error
     ensure
       if @postbuild
         @cartage.display 'Running postbuild script...'
-        system(make_tmpscript('postbuild', @postbuild, subs).path, stage.to_s)
+        system(make_tmpscript('postbuild', @postbuild, @subs).path,
+               @fsm.state.to_s, error.to_s)
       end
 
       @tmpfiles.each { |tmpfile|
@@ -232,6 +204,81 @@ cd #{paths.build_path} && git checkout #{@cartage.release_hashref}
     end
 
     private
+
+    def local_setup
+      @cartage.display 'Pre-build configuration...'
+      @paths = OpenStruct.new(build_root: @build_root)
+      @paths.cartage_path = @paths.build_root.join('cartage')
+      @paths.project_path = @paths.cartage_path.join(@cartage.name)
+      @paths.isolation_path = @paths.project_path.join(@cartage.timestamp)
+      @paths.build_path = @paths.isolation_path.join(@cartage.name)
+      @paths.remote_bundle = @paths.isolation_path.join('deps')
+      @paths.bundle_cache = @paths.project_path
+      @paths.config_file = @paths.isolation_path.join('cartage.yml')
+      @paths.build_script = @paths.isolation_path.join('cartage-build-remote')
+
+      @config_file = make_config(@paths).path
+
+      @subs = OpenStruct.new(
+        @paths.to_h.merge(repo_url:        @cartage.repo_url,
+                         name:            @cartage.name,
+                         release_hashref: @cartage.release_hashref,
+                         timestamp:       @cartage.timestamp,
+                         remote_host:     @remote_host,
+                         remote_port:     @remote_port,
+                         remote_user:     @remote_user)
+      )
+
+    end
+
+    def ssh_setup
+      require 'fog'
+      options = {
+        paranoid: true,
+        keys:     @keys,
+        key_data: @key_data
+      }
+
+      options[:port] = @remote_port if @remote_port
+
+      @ssh = Fog::SSH.new(@remote_host, @remote_user, options)
+      @scp = Fog::SCP.new(@remote_host, @remote_user, options)
+    end
+
+    def run_prebuild
+      @cartage.display 'Running prebuild script...'
+      system(make_tmpscript('prebuild', @prebuild, @subs).path)
+    end
+
+    def clone_remote
+      @cartage.display <<-message
+Checking out #{@cartage.repo_url} at #{@cartage.release_hashref} remotely...
+      message
+
+      ssh %Q(mkdir -p #{@paths.isolation_path})
+      @scp.upload(@config_file, user_path(@paths.config_file))
+      ssh %Q(git clone #{@cartage.repo_url} #{@paths.build_path})
+      ssh <<-command
+cd #{@paths.build_path} && git checkout #{@cartage.release_hashref}
+      command
+    end
+
+    def build_remote
+      @cartage.display 'Running build script...'
+      script = make_tmpscript('build', @build, @subs).path
+      @scp.upload(script, user_path(@paths.build_script))
+      ssh %Q(cd #{@paths.build_path} && #{@paths.build_script})
+    end
+
+    def clean_remote
+      @cartage.display 'Cleaning up after the build...'
+      ssh %Q(rm -rf #{@paths.isolation_path})
+    end
+
+    def dispatch(event, state)
+      send(event) if respond_to?(event, true)
+      send(state) if respond_to?(state, true)
+    end
 
     def resolve_config!(remote_config)
       unless remote_config
@@ -296,19 +343,6 @@ No build script to run on remote #{@remote_server}.
       @cartage
     end
 
-    def configure_ssh
-      require 'fog'
-      options = {
-        paranoid: true,
-        keys:     @keys,
-        key_data: @key_data
-      }
-
-      options[:port] = @remote_port if @remote_port
-
-      @ssh = Fog::SSH.new(@remote_host, @remote_user, options)
-      @scp = Fog::SCP.new(@remote_host, @remote_user, options)
-    end
 
     def ssh(*commands)
       results = @ssh.run(commands) do |stdout, stderr|
@@ -318,8 +352,12 @@ No build script to run on remote #{@remote_server}.
 
       results.each do |result|
         if result.status.nonzero?
-          fail "SSH Command failed with status (#{result.status}): " +
-            "#{result.status}"
+          message = <<-msg
+Remote error in stage #{@fsm.state}:
+  SSH command failed with status (#{result.status}):
+    #{result.command}
+          msg
+          fail Cartage::StatusError.new(result.status, message)
         end
       end
     end

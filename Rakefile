@@ -20,7 +20,8 @@ spec = Hoe.spec 'cartage-remote' do
 
   license 'MIT'
 
-  self.extra_deps << ['cartage', '~> 1.0']
+  self.extra_deps << ['cartage', '~> 1.1']
+  self.extra_deps << ['micromachine', '~> 1.2']
   self.extra_deps << ['fog', '~> 1.27']
 
   self.extra_dev_deps << ['rake', '~> 10.0']
@@ -28,7 +29,6 @@ spec = Hoe.spec 'cartage-remote' do
   self.extra_dev_deps << ['hoe-gemspec2', '~> 1.1']
   self.extra_dev_deps << ['hoe-git', '~> 1.5']
   self.extra_dev_deps << ['hoe-geminabox', '~> 0.3']
-=begin
   self.extra_dev_deps << ['minitest', '~> 5.4']
   self.extra_dev_deps << ['minitest-autotest', '~> 1.0']
   self.extra_dev_deps << ['minitest-bisect', '~> 1.2']
@@ -36,10 +36,8 @@ spec = Hoe.spec 'cartage-remote' do
   self.extra_dev_deps << ['minitest-moar', '~> 0.0']
   self.extra_dev_deps << ['minitest-pretty_diff', '~> 0.1']
   self.extra_dev_deps << ['simplecov', '~> 0.7']
-=end
 end
 
-=begin
 namespace :test do
   task :coverage do
     prelude = <<-EOS
@@ -51,6 +49,5 @@ gem 'minitest'
     Rake::Task['test'].execute
   end
 end
-=end
 
 # vim: syntax=ruby

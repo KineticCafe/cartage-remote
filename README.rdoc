@@ -2,7 +2,7 @@
 
 code :: https://github.com/KineticCafe/cartage-remote/
 issues :: https://github.com/KineticCafe/cartage-remote/issues
-continuous integration :: {<img src="https://travis-ci.org/KineticCafe/cartage-remote.png" />}[https://travis-ci.org/KineticCafe/cartage-remote]
+continuous integration :: {<img src="https://travis-ci.org/KineticCafe/cartage-remote.svg?branch=master" alt="Build Status" />}[https://travis-ci.org/KineticCafe/cartage-remote]
 
 == Description
 
@@ -11,20 +11,35 @@ to build a package on a remote machine with cartage.
 
 Cartage provides a repeatable means to create a package for a Rails application
 that can be used in deployment with a configuration tool like Ansible, Chef,
-Puppet, or Salt. The package is created with its dependencies bundled in
-`vendor/bundle`, so it can be deployed in environments with strict access
-control rules and without requiring development tool access.
+Puppet, or Salt.
 
-== Synopsis
+== Synopsis & Configuration
+
+cartage-remote is a plug-in for Cartage that builds a package on a remote
+machine.
 
     # Build a package on a remote machine via SSH.
     cartage remote
+
+This can be configured in the <tt>config.remote</tt> section of the Cartage
+configuration file.
+
+    plugins:
+      remote:
+        disabled: false
+        host: default
+        hosts:
+          default:
+            user: build
+            address: build-machine
+            port: 22
+          alternate: alternate@build-machine:2222
 
 == Install
 
 Add cartage-remote to your Gemfile:
 
-    gem 'cartage-remote', '~> 1.1'
+    gem 'cartage-remote', '~> 2.0'
 
 Or manually install:
 
@@ -37,9 +52,13 @@ change:
 
 * When PATCH is zero (+0+), it will be omitted from version references.
 
-cartage-remote will generally track cartage for major versions to ensure plugin API
-compatibility.
+cartage-remote will generally track cartage for major versions to ensure plugin
+API compatibility.
 
-:include: Contributing.rdoc
+== Community and Contributing
 
-:include: Licence.rdoc
+cartage-bundler welcomes your contributions as described in
+{Contributing.md}[https://github.com/KineticCafe/cartage-bundler/blob/master/Contributing.md].
+This project, like all Kinetic Cafe {open source
+projects}[https://github.com/KineticCafe], is under the Kinetic Cafe Open
+Source {Code of Conduct}[https://github.com/KineticCafe/code-of-conduct].

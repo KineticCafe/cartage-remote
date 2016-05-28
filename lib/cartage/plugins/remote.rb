@@ -179,7 +179,7 @@ class Cartage
   #         bundle exec cartage build --config-file %{config_file} &&
   #         bundle exec cartage s3 --config-file %{config_file}
   class Remote < Cartage::Plugin
-    VERSION = '2.0.rc1' #:nodoc:
+    VERSION = '2.0.rc2' #:nodoc:
 
     # Build on the remote server.
     def build
@@ -338,7 +338,7 @@ cd #{paths.build_path} && git checkout #{cartage.release_hashref}
 
     def build_remote
       cartage.display 'Running build script...'
-      script = make_tmpscript('build', build, subs).path
+      script = make_tmpscript('build', build_script, subs).path
       host.scp.upload(script, user_path(paths.build_script))
       ssh "cd #{paths.build_path} && #{paths.build_script}"
     end

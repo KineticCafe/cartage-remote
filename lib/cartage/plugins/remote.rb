@@ -95,12 +95,15 @@ class Cartage
   #             set -e
   #             if [ -f Gemfile ]; then
   #               bundle install --path %{remote_bundle}
-  #               bundle exec cartage build \
+  #               bundle exec cartage \
   #                 --config-file %{config_file} \
-  #                 --target %{project_path}
+  #                 --target %{project_path} \
+  #                 pack
   #             else
-  #               cartage build --config-file %{config_file} \
-  #                 --target %{project_path}
+  #               cartage \
+  #                 --config-file %{config_file} \
+  #                 --target %{project_path} \
+  #                 pack
   #             fi
   # +prebuild+:: A multiline YAML string that is run as a script on the local
   #              machine to prepare for running remotely. If not provided, the
@@ -162,7 +165,7 @@ class Cartage
   #                      server. Set the same as +project_path+.
   # +config_file+:: The remote filename of the computed Cartage configuration.
   #                 Must be provided to the remote run of +cartage+.
-  #                   bundle exec cartage build --config-file %{config_file}
+  #                   bundle exec cartage --config-file %{config_file} pack
   # +build_script+:: The full path to the remote build script.
   #                  <tt><em>isolation_path</em>/cartage-build-remote</tt>.
   #
@@ -176,10 +179,10 @@ class Cartage
   #       script: |
   #         #! /bin/bash
   #         bundle install --path %{remote_bundle} &&
-  #         bundle exec cartage build --config-file %{config_file} &&
-  #         bundle exec cartage s3 --config-file %{config_file}
+  #         bundle exec cartage --config-file %{config_file} pack &&
+  #         bundle exec cartage --config-file %{config_file} s3 put
   class Remote < Cartage::Plugin
-    VERSION = '2.0.rc2' #:nodoc:
+    VERSION = '2.0.rc3' #:nodoc:
 
     # Build on the remote server.
     def build
@@ -364,6 +367,7 @@ cd #{paths.build_path} && git checkout #{cartage.release_hashref}
         config.hosts ||= OpenStruct.new
         default = Cartage::Remote::Host.new(config.server).to_hash
         config.hosts.default ||= OpenStruct.new(default)
+        config.delete_field(:server)
       end
 
       if config.keys.kind_of?(OpenStruct)
@@ -464,9 +468,9 @@ set -e
 
 if [ -f Gemfile ]; then
   bundle install --path %{remote_bundle}
-  bundle exec cartage build --config-file %{config_file} --target %{project_path}
+  bundle exec cartage --config-file %{config_file} --target %{project_path} pack
 else
-  cartage build --config-file %{config_file} --target %{project_path}
+  cartage --config-file %{config_file} --target %{project_path} pack
 fi
     script
   end

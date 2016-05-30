@@ -30,7 +30,7 @@ configuration file.
     remote.action do |_global, options, _args|
       options[:host] = nil if options[:host] == :default
       config = cartage.config(for_plugin: :remote)
-      server = (options[:host] || config.host || :default).to_sym
+      server = options[:host] || config.host || 'default'
 
       unless config.dig(:hosts, server)
         message = if options[:host] || config.host
@@ -41,7 +41,7 @@ configuration file.
         fail ArgumentError, message
       end
 
-      config.server = server
+      config.host ||= server
       cartage.remote.build
     end
   end

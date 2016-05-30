@@ -1,14 +1,14 @@
 # -*- encoding: utf-8 -*-
-# stub: cartage-remote 2.0.rc3 ruby lib
+# stub: cartage-remote 2.0.rc4 ruby lib
 
 Gem::Specification.new do |s|
   s.name = "cartage-remote".freeze
-  s.version = "2.0.rc3"
+  s.version = "2.0.rc4"
 
   s.required_rubygems_version = Gem::Requirement.new("> 1.3.1".freeze) if s.respond_to? :required_rubygems_version=
   s.require_paths = ["lib".freeze]
   s.authors = ["Austin Ziegler".freeze]
-  s.date = "2016-05-29"
+  s.date = "2016-05-30"
   s.description = "cartage-remote is a plug-in for {cartage}[https://github.com/KineticCafe/cartage]\nto build a package on a remote machine with cartage.\n\nCartage provides a repeatable means to create a package for a Rails application\nthat can be used in deployment with a configuration tool like Ansible, Chef,\nPuppet, or Salt.".freeze
   s.email = ["aziegler@kineticcafe.com".freeze]
   s.extra_rdoc_files = ["Contributing.md".freeze, "History.md".freeze, "Licence.md".freeze, "Manifest.txt".freeze, "README.rdoc".freeze]

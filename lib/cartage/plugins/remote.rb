@@ -182,7 +182,7 @@ class Cartage
   #         bundle exec cartage --config-file %{config_file} pack &&
   #         bundle exec cartage --config-file %{config_file} s3 put
   class Remote < Cartage::Plugin
-    VERSION = '2.0.rc3' #:nodoc:
+    VERSION = '2.0.rc4' #:nodoc:
 
     # Build on the remote server.
     def build
@@ -366,7 +366,9 @@ cd #{paths.build_path} && git checkout #{cartage.release_hashref}
 
         config.hosts ||= OpenStruct.new
         default = Cartage::Remote::Host.new(config.server).to_hash
-        config.hosts.default ||= OpenStruct.new(default)
+        config.hosts.default = OpenStruct.new(default)
+        config.host ||= 'default'
+
         config.delete_field(:server)
       end
 

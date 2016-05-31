@@ -1,3 +1,14 @@
+=== 2.0 / 2016-03-DD
+
+*   Rewrote for compatibility with cartage 2.0.
+
+*   1 major enhancements
+
+    *   Configuration now supports multiple servers. Old cartage-remote
+        configurations will continue to work and be accessible as the +default+
+        host. An error will be raised if there is an explicit +default+
+        host combined with this implicit +default+ host.
+
 === 1.1 / 2015-03-26
 
 *   1 major bugfix

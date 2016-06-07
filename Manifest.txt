@@ -9,3 +9,4 @@ lib/cartage/plugins/remote.rb
 lib/cartage/remote/host.rb
 test/minitest_config.rb
 test/test_cartage_remote.rb
+test/test_cartage_remote_host.rb

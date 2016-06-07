@@ -9,3 +9,7 @@ require 'minitest/bisect'
 require 'minitest-bonus-assertions'
 
 require 'cartage/minitest'
+require 'cartage/plugins/remote'
+require 'fog'
+
+Fog.mock!

@@ -1,4 +1,10 @@
-=== 2.0 / 2016-03-DD
+=== 2.1 / 2016-06-07
+
+*   Fix an issue discovered with connection when host keys are not set but
+    are overriding globally defined host keys or key data. Added
+    Cartage::Remote::Host tests to ensure that this does not regress.
+
+=== 2.0 / 2016-05-31
 
 *   Rewrote for compatibility with cartage 2.0.
 

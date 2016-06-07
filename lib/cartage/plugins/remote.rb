@@ -182,7 +182,7 @@ class Cartage
   #         bundle exec cartage --config-file %{config_file} pack &&
   #         bundle exec cartage --config-file %{config_file} s3 put
   class Remote < Cartage::Plugin
-    VERSION = '2.0' #:nodoc:
+    VERSION = '2.1' #:nodoc:
 
     # Build on the remote server.
     def build
@@ -377,7 +377,7 @@ cd #{paths.build_path} && git checkout #{cartage.release_hashref}
       else
         @keys = Array(config.keys || '~/.ssh/*id_[rd]sa').flat_map { |key|
           Pathname.glob(Pathname(key).expand_path)
-        }
+        }.uniq
       end
 
       @build_root = Pathname(config.build_root || '~')

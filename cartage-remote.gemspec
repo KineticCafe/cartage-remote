@@ -1,18 +1,18 @@
 # -*- encoding: utf-8 -*-
-# stub: cartage-remote 2.0 ruby lib
+# stub: cartage-remote 2.1 ruby lib
 
 Gem::Specification.new do |s|
   s.name = "cartage-remote".freeze
-  s.version = "2.0"
+  s.version = "2.1"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0".freeze) if s.respond_to? :required_rubygems_version=
   s.require_paths = ["lib".freeze]
   s.authors = ["Austin Ziegler".freeze]
-  s.date = "2016-05-31"
+  s.date = "2016-06-07"
   s.description = "cartage-remote is a plug-in for {cartage}[https://github.com/KineticCafe/cartage]\nto build a package on a remote machine with cartage.\n\nCartage provides a repeatable means to create a package for a Rails application\nthat can be used in deployment with a configuration tool like Ansible, Chef,\nPuppet, or Salt.".freeze
   s.email = ["aziegler@kineticcafe.com".freeze]
   s.extra_rdoc_files = ["Contributing.md".freeze, "History.md".freeze, "Licence.md".freeze, "Manifest.txt".freeze, "README.rdoc".freeze]
-  s.files = ["Contributing.md".freeze, "History.md".freeze, "Licence.md".freeze, "Manifest.txt".freeze, "README.rdoc".freeze, "Rakefile".freeze, "lib/cartage/commands/remote.rb".freeze, "lib/cartage/plugins/remote.rb".freeze, "lib/cartage/remote/host.rb".freeze, "test/minitest_config.rb".freeze, "test/test_cartage_remote.rb".freeze]
+  s.files = ["Contributing.md".freeze, "History.md".freeze, "Licence.md".freeze, "Manifest.txt".freeze, "README.rdoc".freeze, "Rakefile".freeze, "lib/cartage/commands/remote.rb".freeze, "lib/cartage/plugins/remote.rb".freeze, "lib/cartage/remote/host.rb".freeze, "test/minitest_config.rb".freeze, "test/test_cartage_remote.rb".freeze, "test/test_cartage_remote_host.rb".freeze]
   s.homepage = "https://github.com/KineticCafe/cartage-remote/".freeze
   s.licenses = ["MIT".freeze]
   s.rdoc_options = ["--main".freeze, "README.rdoc".freeze]

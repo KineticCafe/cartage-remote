@@ -17,6 +17,12 @@ class Cartage::Remote::Host
   # The (optional) postbuild script defined as part of this host.
   attr_reader :postbuild
 
+  # The (optional) array of SSH private key filenames defined as part of this
+  # host.
+  attr_reader :keys
+  # The (optional) array of SSH private keys defined as part of this host.
+  attr_reader :key_data
+
   # The Fog::SSH instance for this server. Must run #configure_ssh before
   # using.
   attr_reader :ssh
@@ -41,11 +47,17 @@ class Cartage::Remote::Host
 
       if host.keys.kind_of?(OpenStruct)
         @key_data = host.keys.to_h.values
-      else
+      elsif host.keys
         @keys = Array(host.keys).flat_map { |key|
           Pathname.glob(Pathname(key).expand_path)
-        }
+        }.uniq
       end
+
+      # If key_data or keys are empty, properly empty them so that they are
+      # handled improperly.
+      @key_data = nil if @key_data && @key_data.empty?
+      @keys = nil if @keys && @keys.empty?
+
       @build = host.build
       @prebuild = host.prebuild
       @postbuild = host.postbuild

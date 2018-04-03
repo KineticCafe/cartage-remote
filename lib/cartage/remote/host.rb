@@ -9,6 +9,8 @@ class Cartage::Remote::Host
   attr_reader :address
   # The port of the SSH connection to the remote host.
   attr_reader :port
+  # Whether agent forwarding should be turned on or not. Defaults to +true+.
+  attr_reader :forward_agent
 
   # The (optional) build script defined as part of this host.
   attr_reader :build
@@ -44,6 +46,7 @@ class Cartage::Remote::Host
       @user = host.user
       @address = host.address || host.host
       @port = host.port
+      @forward_agent = host.to_h.fetch(:forward_agent, true)
 
       if host.keys.kind_of?(OpenStruct)
         @key_data = host.keys.to_h.values
@@ -65,6 +68,7 @@ class Cartage::Remote::Host
       @user = Regexp.last_match[:user]
       @address = Regexp.last_match[:address]
       @port = Regexp.last_match[:port]
+      @forward_agent = true
     end
 
     if address.nil? || address.empty?
@@ -79,22 +83,26 @@ class Cartage::Remote::Host
   # Configure the Fog::SSH and Fog::SCP connections using the provided
   # ssh_config.
   def configure_ssh(ssh_config)
-    require 'fog'
+    require 'fog/core'
 
-    if @key_data
-      ssh_config[:key_data] = @key_data
+    if key_data
+      ssh_config[:key_data] = key_data
       ssh_config[:keys] = nil
-    elsif @keys
+    elsif keys
       ssh_config[:key_data] = nil
-      ssh_config[:keys] = @keys
+      ssh_config[:keys] = keys
     end
 
-    options = { paranoid: true, port: port }.
+    ssh_options = { paranoid: true, port: port, forward_agent: !!forward_agent }.
       merge(ssh_config).
       delete_if { |_, v| v.nil? || (v.respond_to?(:empty?) && v.empty?) }
 
-    @ssh = Fog::SSH.new(address, user, options)
-    @scp = Fog::SCP.new(address, user, options)
+    scp_options = { paranoid: true, port: port }.
+      merge(ssh_config).
+      delete_if { |_, v| v.nil? || (v.respond_to?(:empty?) && v.empty?) }
+
+    @ssh = Fog::SSH.new(address, user, ssh_options)
+    @scp = Fog::SCP.new(address, user, scp_options)
   end
 
   # This Host, formatted nicely.
@@ -107,7 +115,10 @@ class Cartage::Remote::Host
     {
       user: user,
       address: address,
-      port: port
+      port: port,
+      forward_agent: forward_agent
     }.delete_if { |_, v| v.nil? || (v.respond_to?(:empty?) && v.empty?) }
   end
+
+  alias to_h to_hash
 end

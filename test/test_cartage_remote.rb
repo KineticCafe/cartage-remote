@@ -6,12 +6,13 @@ describe 'Cartage::Remote' do
   let(:string_host) {
     'suser@saddress:sport'
   }
+
   let(:hash_host) {
     {
       user: 'huser',
       address: 'haddress',
-      host: 'hhost',
-      port: 'hport'
+      port: 'hport',
+      forward_agent: true
     }
   }
 
@@ -22,6 +23,7 @@ describe 'Cartage::Remote' do
       }
     }
   }
+
   let(:config_hash) {
     {
       root_path: '/a/b/c',
@@ -32,42 +34,34 @@ describe 'Cartage::Remote' do
       }
     }
   }
+
   let(:config) { Cartage::Config.new(config_hash) }
   let(:cartage) { Cartage.new(config) }
   let(:subject) { cartage.remote }
+  let(:hashify) { config.method(:hashify) }
 
-  def self.it_verifies_configuration(focus: false, &block)
-    self.focus if focus
-    it 'fails if there is no host with the given name' do
-      remote_config[:host] = 'foo'
-      ex = assert_raises RuntimeError do
-        instance_exec(&block)
-      end
-      assert_equal 'No host foo present', ex.message
+  it 'fails if there is no host with the given name' do
+    remote_config[:host] = 'foo'
+    ex = assert_raises RuntimeError do
+      cartage.remote.check_config(require_host: true)
     end
+    assert_equal 'No host foo present', ex.message
+  end
 
-    self.focus if focus
-    it 'fails if there are no hosts present' do
-      remote_config[:hosts] = {}
+  it 'fails if there are no hosts present' do
+    remote_config[:hosts] = {}
 
-      ex = assert_raises ArgumentError do
-        instance_exec(&block)
-      end
-      assert_equal 'No hosts present', ex.message
+    ex = assert_raises ArgumentError do
+      cartage.remote.check_config(require_host: true)
     end
+    assert_equal 'No hosts present', ex.message
+  end
 
-    self.focus if focus
-    it 'warns if a host is missing some configuration' do
-      remote_config[:hosts][:foo] = {}
-
-      error = <<-EOS
-Host foo invalid: No host address present
-      EOS
-
-      assert_output nil, error do
-        instance_exec(&block)
-      end
-    end
+  it 'warns if a host is missing some configuration' do
+    remote_config[:hosts][:foo] = {}
+    messages = []
+    cartage.remote.check_config(require_host: true, &->message { messages << message })
+    assert_equal ['Host foo invalid: No host address present'], messages
   end
 
   describe '#resolve_plugin_config!' do
@@ -92,11 +86,26 @@ Host foo invalid: No host address present
     end
 
     it 'converts the implicit default into explicit' do
-      remote_config.delete(:hosts)
+      expected = hashify.(remote_config.delete(:hosts))
       remote_config[:server] = hash_host
 
-      assert_equal remote_config[:hosts], cartage.config(for_plugin: :remote).
-        dig(:hosts).to_hash
+      actual = hashify.(cartage.config(for_plugin: :remote).dig(:hosts))
+
+      assert_equal expected, actual
+    end
+
+    it 'sets forward_agent to true if missing' do
+      expected = hashify.(remote_config.dig(:hosts, :default))
+      remote_config.dig(:hosts, :default).delete(:forward_agent)
+      actual = hashify.(cartage.config(for_plugin: :remote).dig(:hosts, :default))
+      assert_equal expected, actual
+    end
+
+    it 'keeps forward_agent as false if specified' do
+      hash_host[:forward_agent] = false
+      expected = hashify.(remote_config.dig(:hosts, :default))
+      actual = hashify.(cartage.config(for_plugin: :remote).dig(:hosts, :default))
+      assert_equal expected, actual
     end
   end
 end

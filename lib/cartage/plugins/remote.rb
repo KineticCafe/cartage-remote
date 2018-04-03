@@ -182,7 +182,7 @@ class Cartage
   #         bundle exec cartage --config-file %{config_file} pack &&
   #         bundle exec cartage --config-file %{config_file} s3 put
   class Remote < Cartage::Plugin
-    VERSION = '2.2.beta3' #:nodoc:
+    VERSION = '2.2' #:nodoc:
 
     # Build on the remote server.
     def build

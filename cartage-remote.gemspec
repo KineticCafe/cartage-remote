@@ -1,11 +1,11 @@
 # -*- encoding: utf-8 -*-
-# stub: cartage-remote 2.2.beta3 ruby lib
+# stub: cartage-remote 2.2 ruby lib
 
 Gem::Specification.new do |s|
   s.name = "cartage-remote".freeze
-  s.version = "2.2.beta3"
+  s.version = "2.2"
 
-  s.required_rubygems_version = Gem::Requirement.new("> 1.3.1".freeze) if s.respond_to? :required_rubygems_version=
+  s.required_rubygems_version = Gem::Requirement.new(">= 0".freeze) if s.respond_to? :required_rubygems_version=
   s.require_paths = ["lib".freeze]
   s.authors = ["Austin Ziegler".freeze]
   s.date = "2018-04-03"

@@ -1,7 +1,24 @@
+=== 2.2 / 2018-04-03
+
+*   1 major enhancement:
+
+    *    Turn on SSH Agent Forwarding by default and provide an option to
+         disable it.
+
+*   1 major bugfix:
+
+    *    Remove dependency on 'fog' in favour of 'fog-core'. This reduces the
+         number of packages accidentally included because I wanted to use the
+         convenience of Fog::SSH over raw Net::SSH.
+
+*   Test fixes:
+
+    *    Add more configuration checks and fix subtly broken tests.
+
 === 2.1 / 2016-06-07
 
-*   Fix an issue discovered with connection when host keys are not set but
-    are overriding globally defined host keys or key data. Added
+*   Fix an issue discovered with connection when host keys are not set but are
+    overriding globally defined host keys or key data. Added
     Cartage::Remote::Host tests to ensure that this does not regress.
 
 === 2.0 / 2016-05-31

@@ -24,8 +24,8 @@ spec = Hoe.spec 'cartage-remote' do
 
   extra_deps << ['cartage', '~> 2.0']
   extra_deps << ['micromachine', '~> 2.0']
-  extra_deps << ['fog', '~> 1.27']
-  extra_deps << ['net-ssh', '~> 3.0']
+  extra_deps << ['fog-core', '>= 1.0']
+  extra_deps << ['net-ssh', '~> 4.0']
   extra_deps << ['net-scp', '~> 1.2']
 
   extra_dev_deps << ['rake', '>= 10.0']
@@ -36,11 +36,7 @@ spec = Hoe.spec 'cartage-remote' do
   extra_dev_deps << ['hoe-travis', '~> 1.2']
   extra_dev_deps << ['minitest', '~> 5.4']
   extra_dev_deps << ['minitest-autotest', '~> 1.0']
-  extra_dev_deps << ['minitest-bisect', '~> 1.2']
-  extra_dev_deps << ['minitest-bonus-assertions', '~> 2.0']
-  extra_dev_deps << ['minitest-focus', '~> 1.1']
   extra_dev_deps << ['minitest-moar', '~> 0.0']
-  extra_dev_deps << ['minitest-pretty_diff', '~> 0.1']
   extra_dev_deps << ['simplecov', '~> 0.7']
 end
 

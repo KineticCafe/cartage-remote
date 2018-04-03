@@ -1,11 +1,11 @@
 language: ruby
 
 rvm:
-  - 2.3.1
-  - 2.2.5
-  - 2.1.9
-  - 2.0
-  - jruby-9.1.0.0
+  - 2.5.1
+  - 2.4.4
+  - 2.3.7
+  - 2.2.10
+  - jruby-9.1.16.0
   - jruby-9.0.5.0
   - ruby-head
   - jruby-head
@@ -16,6 +16,9 @@ gemfile:
 bundler_args: --path vendor/bundle
 
 sudo: false
+
+before_install:
+  - gem install bundler # https://github.com/travis-ci/travis-ci/issues/9333#issuecomment-373042916
 
 before_script:
   - bundle exec rake travis:before -t
@@ -36,6 +39,8 @@ matrix:
   allow_failures:
     - rvm: jruby-head
     - rvm: ruby-head
+    - rvm: 2.5.1
+    - rvm: 2.4.4
   fast_finish: true
 
 notifications:

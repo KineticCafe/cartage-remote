@@ -134,7 +134,8 @@ describe 'Cartage::Remote::Host' do
       assert_ssh_value 'haddress', :address
       assert_ssh_value 'huser', :username
       assert_ssh_option 'hport', :port
-      assert_ssh_option true, :paranoid
+
+      assert_ssh_option true, :verify_host_key
     end
 
     it 'uses the provided key_data if there is no host override' do

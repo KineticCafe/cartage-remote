@@ -182,7 +182,7 @@ class Cartage
   #         bundle exec cartage --config-file %{config_file} pack &&
   #         bundle exec cartage --config-file %{config_file} s3 put
   class Remote < Cartage::Plugin
-    VERSION = '2.1' #:nodoc:
+    VERSION = '2.2.beta3' #:nodoc:
 
     # Build on the remote server.
     def build
@@ -215,10 +215,20 @@ class Cartage
 
     # Check that the configuration is correct. If +require_host+ is present, an
     # exception will be thrown if a host is required and not present.
-    def check_config(require_host: false)
-      hosts = cartage.config(for_plugin: :remote).hosts
-      verify_hosts(hosts)
-      fail "No host #{name} present" if require_host && !hosts.dig(name)
+    #
+    # The optional +notify+ block parameter is used primarily for testing.
+    def check_config(require_host: false, &notify)
+      config = cartage.config(for_plugin: :remote)
+
+      puts "#{__method__}: verify_hosts(#{config.hosts.inspect})"
+      verify_hosts(config.hosts, &notify)
+
+      if require_host
+        name = config.host || 'default'
+        fail "No host #{name} present" unless config.hosts.dig(name)
+      end
+
+      true
     end
 
     private
@@ -434,23 +444,29 @@ Remote error in stage #{stage.state}:
       path.to_s.sub(%r{\A~/}, '')
     end
 
-    def verify_hosts(hosts)
+    def verify_hosts(hosts, &notify)
       fail ArgumentError, 'No hosts present' if hosts.nil? || hosts.to_h.empty?
 
       hosts.each_pair do |name, host|
-        verify_host(name, host)
+        puts "#{__method__}: verify_host(#{name.inspect}, #{host.inspect})"
+        verify_host(name, host, &notify)
       end
     end
 
     def verify_host(name, host, &notify)
       notify ||= ->(message) { warn message }
 
-      case host
-      when OpenStruct
-        host.dig(:address) || host.dig(:host)
-      when String
-        Cartage::Remote::Host::HOST_RE.match(host)[:address]
-      end || notify.("Host #{name} invalid: No host address present")
+      address =
+        case host
+        when OpenStruct
+          host.dig(:address) || host.dig(:host)
+        when String
+          Cartage::Remote::Host::HOST_RE.match(host)[:address]
+        end
+
+      puts "#{__method__}: address=#{address.inspect}"
+
+      notify.("Host #{name} invalid: No host address present") unless address
     end
 
     def verify_host!(name, host)

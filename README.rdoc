@@ -33,13 +33,14 @@ configuration file.
             user: build
             address: build-machine
             port: 22
+            forward_agent: true # the default
           alternate: alternate@build-machine:2222
 
 == Install
 
 Add cartage-remote to your Gemfile:
 
-    gem 'cartage-remote', '~> 2.0'
+    gem 'cartage-remote', '~> 2.2'
 
 Or manually install:
 
